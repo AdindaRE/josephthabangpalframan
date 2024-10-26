@@ -1,0 +1,43 @@
+[
+    {
+        "id": "1",
+        "title": "Project One",
+        "date": "2023-01-01",
+        "mainImage": "https://example.com/image1.jpg",
+        "description": "Description of project one.",
+        "video": "https://www.youtube.com/watch?v=example1",
+        "additionalImages": [
+            "https://example.com/image2.jpg"
+        ],
+        "researchImages": [],
+        "icon": "https://example.com/icon1.png",
+        "about": [
+            "About project one"
+        ],
+        "partners": [
+            "Partner A",
+            "Partner B"
+        ],
+        "references": []
+    },
+    {
+        "id": "2",
+        "title": "Project Two",
+        "date": "2023-02-01",
+        "mainImage": "https://example.com/image3.jpg",
+        "description": "Description of project two.",
+        "video": "https://www.youtube.com/watch?v=example2",
+        "additionalImages": [
+            "https://example.com/image4.jpg"
+        ],
+        "researchImages": [],
+        "icon": "https://example.com/icon2.png",
+        "about": [
+            "About project two"
+        ],
+        "partners": [
+            "Partner C"
+        ],
+        "references": []
+    }
+]

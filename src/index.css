@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+html,
+body {
+    @apply bg-cover bg-center bg-no-repeat bg-fixed;
+    background-image: url('public/assets/images/AMRITA KHAN_FINALARTWORK_BYARBERSEFA_WEB-1.jpg');
+    font-family: 'Poppins', sans-serif;
+    height: 100%;
+    /* Ensure full height */
+    margin: 0;
+    /* Remove default margin */
+}
+
+#root {
+    min-height: 100vh;
+    /* Ensure root element takes full height */
+}
