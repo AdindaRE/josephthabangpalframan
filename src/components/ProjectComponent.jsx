@@ -9,8 +9,8 @@ const ProjectCard = ({ project }) => (
     <div className="relative w-full mb-8">
         <Link to={project.link} className="block cursor-pointer">
             <img
-                src={project.image || 'fallback-image-url.jpg'} // Provide a fallback image if none
-                alt={`Project ${project.title || project.id}`} // Better alt text
+                src={project.image}
+                alt={`Project ${project.id}`}
                 className="object-cover w-full h-auto transition-transform duration-300 hover:scale-105"
                 style={{ height: 'auto', maxHeight: '80vh' }}
             />
@@ -25,9 +25,8 @@ const ProjectCard = ({ project }) => (
 ProjectCard.propTypes = {
     project: PropTypes.shape({
         id: PropTypes.string.isRequired,
-        title: PropTypes.string.isRequired,  // Add title here
         link: PropTypes.string.isRequired,
-        image: PropTypes.string,
+        image: PropTypes.string.isRequired,
         caption: PropTypes.string.isRequired,
     }).isRequired,
 };
@@ -59,7 +58,7 @@ const ProjectComponent = () => {
 
     // Handle loading state
     if (loading) {
-        return <div className="text-center">Loading...</div>; // Consider using a spinner here
+        return <div className="text-center">Loading...</div>;
     }
 
     // Handle error state

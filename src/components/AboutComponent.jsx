@@ -1,48 +1,19 @@
-import { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
+
 
 const AboutComponent = () => {
-    const sectionRef = useRef(null);
-    const titleRef = useRef(null);
-    const bioRef = useRef(null);
-
-    useEffect(() => {
-        const timeline = gsap.timeline({ defaults: { duration: 0.6, ease: 'ease-in-out' } });
-
-        // Animate the title first
-        timeline.fromTo(
-            titleRef.current,
-            { opacity: 0, y: 20 }, // Start from invisible and lower
-            { opacity: 1, y: 0 }    // Fade in to original position
-        );
-
-        // Animate the biography text with a slight delay
-        timeline.fromTo(
-            bioRef.current,
-            { opacity: 0, y: 20 }, // Start from invisible and lower
-            { opacity: 1, y: 0, delay: 0.2 } // Fade in with a delay
-        );
-    }, []);
-
     return (
         <div className="bg-white text-gray-900 min-h-screen flex items-center justify-center">
             {/* About Section */}
-            <section ref={sectionRef} className="relative w-full py-10 px-4 md:px-12">
+            <section className="relative w-full py-10 px-4 md:px-12"> {/* Reduced top padding */}
                 <div className="text-center mb-16">
-                    <h2
-                        ref={titleRef}
-                        className="text-4xl md:text-5xl font-medium uppercase tracking-tight font-montserrat mb-6 leading-tight"
-                    >
+                    <h2 className="text-4xl md:text-5xl font-medium uppercase tracking-tight font-montserrat mb-6 leading-tight">
                         Behind the Artist
                     </h2>
                 </div>
 
                 <div className="flex flex-col items-center">
                     {/* Biography */}
-                    <div
-                        ref={bioRef}
-                        className="space-y-6 text-lg font-light font-open-sans leading-relaxed text-center md:text-justify max-w-3xl opacity-0" // Initial opacity set to 0
-                    >
+                    <div className="space-y-6 text-lg font-light font-open-sans leading-relaxed text-center md:text-justify max-w-3xl">
                         <p style={{ letterSpacing: '0.8px' }}>
                             Joseph Thabang Palframan (born 1997, Windhoek, Namibia) is an artist currently living and working in Belgium.
                             Palframan was born to mixed parents at the beginning of the post-apartheid era; narrowly escaping being born a crime.

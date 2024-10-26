@@ -2,35 +2,89 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types'; // Import PropTypes for prop validation
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { IoIosExpand } from 'react-icons/io';
 import { CgScrollV } from 'react-icons/cg';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase-config'; // Correct import for Firestore
+import { ref, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../firebase-config'; // Correct import for Firestore and Storage
 
 gsap.registerPlugin(ScrollTrigger);
 
-// TitleCard Component
-const TitleCard = ({ painting, onExpand }) => (
+// PaintingCard Component
+const PaintingCard = ({ painting, onExpand }) => (
     <div
-        className="border border-gray-200 rounded-lg shadow-lg overflow-hidden bg-white p-4 flex flex-col space-y-4"
-        onClick={() => onExpand(painting)}
+        className={`relative group overflow-hidden cursor-pointer painting-card
+            w-full sm:w-[calc(50%-12px)] ${painting.id % 2 === 0 ? 'h-[60vh]' : 'h-[80vh]'}`}
     >
-        <p className="text-xl font-semibold">{painting.caption}</p>
-        <p className="text-sm text-gray-600">{painting.measurements}</p>
-        <p className="text-sm text-gray-600">{painting.medium}</p>
-        <p className="text-sm text-gray-600">{painting.gallery}</p>
+        <img
+            src={painting.src} // Image URL from Firebase Storage
+            alt={painting.caption}
+            className="w-full h-full object-cover lazyload transition-transform duration-300 transform group-hover:scale-105"
+            loading="lazy"
+        />
+        <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="text-white text-sm text-center font-open-sans">
+                <p>{painting.caption}</p>
+                <p>Measurements: {painting.measurements}</p>
+                <p>Medium: {painting.medium}</p>
+                <p>Gallery: {painting.gallery}</p>
+            </div>
+        </div>
+        {/* Expand icon */}
+        <div
+            className="absolute bottom-4 right-4 text-black text-2xl opacity-100 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+            onClick={(e) => {
+                e.stopPropagation(); // Prevent click event from bubbling up
+                onExpand(painting);
+            }}
+        >
+            <IoIosExpand className="text-black group-hover:text-white transition-colors duration-300" />
+        </div>
     </div>
 );
 
-// Prop validation for TitleCard component
-TitleCard.propTypes = {
+// Prop validation for PaintingCard component
+PaintingCard.propTypes = {
     painting: PropTypes.shape({
         id: PropTypes.string.isRequired,
+        src: PropTypes.string.isRequired,
         caption: PropTypes.string,
         measurements: PropTypes.string,
         medium: PropTypes.string,
         gallery: PropTypes.string,
     }).isRequired,
     onExpand: PropTypes.func.isRequired,
+};
+
+// ExpandedPaintingModal Component
+const ExpandedPaintingModal = ({ painting, onClose }) => (
+    <div
+        className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50"
+        onClick={onClose}
+    >
+        <div className="relative">
+            <img
+                src={painting.src}
+                alt={painting.caption}
+                className="max-w-full max-h-full object-cover"
+            />
+            <button
+                className="absolute top-4 right-4 text-white text-4xl"
+                onClick={onClose}
+            >
+                &times;
+            </button>
+        </div>
+    </div>
+);
+
+// Prop validation for ExpandedPaintingModal component
+ExpandedPaintingModal.propTypes = {
+    painting: PropTypes.shape({
+        src: PropTypes.string.isRequired,
+        caption: PropTypes.string.isRequired,
+    }).isRequired,
+    onClose: PropTypes.func.isRequired,
 };
 
 // ScrollToTopButton Component
@@ -56,15 +110,21 @@ const PaintingsComponent = () => {
     const [showScrollToTop, setShowScrollToTop] = useState(false);
     const [expandedPainting, setExpandedPainting] = useState(null);
 
-    // Fetch paintings from Firestore
     const fetchPaintings = async () => {
         try {
             const paintingsCollection = collection(db, 'paintings');
             const paintingSnapshot = await getDocs(paintingsCollection);
-            const paintingData = paintingSnapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
+            const paintingData = await Promise.all(
+                paintingSnapshot.docs.map(async (doc) => {
+                    const painting = doc.data();
+                    if (painting.imagePath) {
+                        const imageRef = ref(storage, painting.imagePath);
+                        const imageUrl = await getDownloadURL(imageRef);
+                        return { id: doc.id, ...painting, src: imageUrl };
+                    }
+                    return { id: doc.id, ...painting };
+                })
+            );
             setPaintings(paintingData);
         } catch (error) {
             console.error("Error fetching paintings: ", error);
@@ -105,10 +165,10 @@ const PaintingsComponent = () => {
 
     // GSAP Animation for paintings
     useEffect(() => {
-        const titleCards = document.querySelectorAll('.painting-card');
-        titleCards.forEach((card, index) => {
+        const paintings = document.querySelectorAll('.painting-card');
+        paintings.forEach((painting, index) => {
             gsap.fromTo(
-                card,
+                painting,
                 { opacity: 0, y: 100 },
                 {
                     opacity: 1,
@@ -117,7 +177,7 @@ const PaintingsComponent = () => {
                     delay: index * 0.1,
                     ease: 'power2.out',
                     scrollTrigger: {
-                        trigger: card,
+                        trigger: painting,
                         start: 'top bottom',
                         toggleActions: 'play none none none',
                     },
@@ -137,7 +197,7 @@ const PaintingsComponent = () => {
             <div className="max-w-screen-xl mx-auto">
                 <div className="flex flex-wrap gap-6 justify-center">
                     {paintings.map((painting) => (
-                        <TitleCard
+                        <PaintingCard
                             key={painting.id}
                             painting={painting}
                             onExpand={handleExpand}
@@ -146,20 +206,12 @@ const PaintingsComponent = () => {
                 </div>
             </div>
 
-            {/* Expanded painting modal (optional if you want to show more details) */}
+            {/* Expanded painting modal */}
             {expandedPainting && (
-                <div className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50">
-                    <div className="relative">
-                        <h2 className="text-white">{expandedPainting.caption}</h2>
-                        {/* Add more details or an image here if needed */}
-                        <button
-                            className="absolute top-4 right-4 text-white text-4xl"
-                            onClick={closeExpand}
-                        >
-                            &times;
-                        </button>
-                    </div>
-                </div>
+                <ExpandedPaintingModal
+                    painting={expandedPainting}
+                    onClose={closeExpand}
+                />
             )}
 
             {/* Scroll to top button */}

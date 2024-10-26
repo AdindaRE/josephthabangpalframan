@@ -5,20 +5,37 @@ import { collection, getDocs } from 'firebase/firestore';
 import PropTypes from 'prop-types'; // Import PropTypes for prop validation
 
 // VideoBackground Component
-const VideoBackground = ({ videoSrc }) => (
-    <video
-        className="absolute inset-0 object-cover w-full h-full transition-transform duration-300"
-        src={videoSrc}
-        autoPlay
-        loop
-        muted
-        preload="auto"
-        style={{
-            objectFit: 'cover',
-            filter: 'brightness(1.1) contrast(1.2) saturate(1.1) drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
-        }}
-    />
-);
+const VideoBackground = ({ videoSrc }) => {
+    const videoRef = useRef(null);
+
+    // Set playback rate and manually trigger play when videoSrc changes
+    useEffect(() => {
+        if (videoRef.current && videoSrc) {
+            videoRef.current.playbackRate = 1; // Set a default playback rate
+            videoRef.current.play(); // Manually trigger playback
+        }
+    }, [videoSrc]);
+
+    return videoSrc ? (
+        <video
+            ref={videoRef}
+            className="absolute inset-0 object-cover w-full h-full transition-transform duration-300"
+            src={videoSrc}
+            autoPlay
+            loop
+            muted
+            preload="auto"
+            style={{
+                objectFit: 'cover',
+                filter: 'brightness(1.1) contrast(1.2) saturate(1.1) drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+            }}
+        />
+    ) : (
+        <div className="flex justify-center items-center h-full">
+            <h2 className="text-white">No video available</h2>
+        </div>
+    );
+};
 
 // Prop validation for VideoBackground component
 VideoBackground.propTypes = {
@@ -49,7 +66,13 @@ const SplashComponent = () => {
                 const videoDocs = await getDocs(videoCollectionRef);
                 const videos = videoDocs.docs.map(doc => ({ ...doc.data(), id: doc.id }));
 
+                console.log("Fetched videos:", videos);
                 setVideoData(videos.length > 0 ? videos[0] : null); // Set the first video found, or null if none exists
+
+                // Log the first video fetched, for debugging purposes
+                if (videos.length > 0) {
+                    console.log("First video data:", videos[0]);
+                }
             } catch (error) {
                 console.error("Error fetching video data:", error);
             }
